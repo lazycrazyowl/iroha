@@ -43,7 +43,7 @@ class TransactionProcessorTest : public ::testing::Test {
     validation = std::make_shared<MockStatelessValidator>();
     mp = std::make_shared<MockMstProcessorDummy>();
 
-    rxcpp::subjects::subject<iroha::model::Proposal> prop_notifier;
+    rxcpp::subjects::subject<Proposal> prop_notifier;
     rxcpp::subjects::subject<Commit> commit_notifier;
 
     EXPECT_CALL(*pcs, on_proposal())
@@ -77,7 +77,7 @@ TEST_F(TransactionProcessorTest,
   wrapper.subscribe([](auto response) {
     auto resp = static_cast<TransactionResponse &>(*response);
     ASSERT_EQ(resp.current_status,
-              iroha::model::TransactionResponse::STATELESS_VALIDATION_SUCCESS);
+              TransactionResponse::STATELESS_VALIDATION_SUCCESS);
   });
   tp->transactionHandle(tx);
 
@@ -93,6 +93,8 @@ TEST_F(TransactionProcessorTest,
 
   EXPECT_CALL(*validation, validate(A<const Transaction &>()))
       .WillRepeatedly(Return(false));
+  EXPECT_CALL(*validation, validate(A<std::shared_ptr<const Query>>()))
+      .WillRepeatedly(Return(false));
 
   auto tx = std::make_shared<Transaction>();
 
@@ -100,7 +102,7 @@ TEST_F(TransactionProcessorTest,
   wrapper.subscribe([](auto response) {
     auto resp = static_cast<TransactionResponse &>(*response);
     ASSERT_EQ(resp.current_status,
-              iroha::model::TransactionResponse::STATELESS_VALIDATION_FAILED);
+              TransactionResponse::STATELESS_VALIDATION_FAILED);
   });
   tp->transactionHandle(tx);
 

@@ -55,7 +55,7 @@ namespace iroha {
         }
       });
 
-      static const auto notify_success = [this](const auto &tx) {
+      const auto notify_success = [this](const auto &tx) {
         auto h = hash(tx).to_string();
         this->proposal_set_.erase(h);
         this->candidate_set_.insert(h);
@@ -66,18 +66,19 @@ namespace iroha {
             }));
       };
 
-      static const auto notify_fail = [this](const auto &h) {
+      const auto notify_fail = [this](const auto &h) {
         this->notifier_.get_subscriber().on_next(
             std::make_shared<TransactionResponse>(
                 TransactionResponse{h, Status::STATEFUL_VALIDATION_FAILED}));
       };
 
       // move commited txs from proposal to candidate map
-      pcs_->on_commit().subscribe([this](auto blocks) {
+      pcs_->on_commit().subscribe([this, notify_success,
+                                   notify_fail](auto blocks) {
         blocks.subscribe(
             // on next..
-            [this](auto block) {
-              static const auto in_proposal = [this](const auto &tx) {
+            [this, notify_success](auto block) {
+              const auto in_proposal = [this](const auto &tx) {
                 return this->proposal_set_.count(hash(tx).to_string());
               };
               boost::for_each(
@@ -85,7 +86,7 @@ namespace iroha {
                   notify_success);
             },
             // on complete
-            [this]() {
+            [this, notify_fail]() {
               boost::for_each(
                   boost::join(this->proposal_set_, this->candidate_set_),
                   notify_fail);
@@ -95,9 +96,10 @@ namespace iroha {
       });
 
       mst_proc_->onPreparedTransactions().subscribe(
-          [](auto tx) { return notify_success(*tx); });
-      mst_proc_->onExpiredTransactions().subscribe(
-          [](auto tx) { return notify_fail(hash(*tx).to_string()); });
+          [notify_success](auto tx) { return notify_success(*tx); });
+      mst_proc_->onExpiredTransactions().subscribe([notify_fail](auto tx) {
+        return notify_fail(hash(*tx).to_string());
+      });
     }
 
     void TransactionProcessorImpl::transactionHandle(

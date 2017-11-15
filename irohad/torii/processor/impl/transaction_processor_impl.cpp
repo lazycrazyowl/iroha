@@ -55,7 +55,7 @@ namespace iroha {
       });
 
       // move commited txs from proposal to candidate map
-      pcs_->on_commit().subscribe([this](auto blocks) {
+      pcs_->on_commit().subscribe([this](auto &&blocks) {
         blocks.subscribe(
             // on next..
             [this](auto &&block) {
@@ -64,15 +64,20 @@ namespace iroha {
               };
               boost::for_each(
                   block.transactions | boost::adaptors::filtered(in_proposal),
-                  [this](auto &t) { this->notify_success(t); });
+                  [this](auto &&t) {
+                    const auto &h = hash(t).to_string();
+                    this->proposal_set_.erase(h);
+                    this->candidate_set_.insert(h);
+                    this->notify(h, Status::STATEFUL_VALIDATION_SUCCESS);
+                  });
             },
             // on complete
             [this]() {
-              boost::for_each(this->proposal_set_, [this](auto &t) {
+              boost::for_each(this->proposal_set_, [this](auto &&t) {
                 return this->notify(t, Status::STATEFUL_VALIDATION_FAILED);
               });
               this->proposal_set_.clear();
-              boost::for_each(this->candidate_set_, [this](auto &t) {
+              boost::for_each(this->candidate_set_, [this](auto &&t) {
                 return this->notify(t, Status::COMMITTED);
               });
               this->candidate_set_.clear();
@@ -89,7 +94,7 @@ namespace iroha {
     void TransactionProcessorImpl::transactionHandle(
         ConstRefTransaction transaction) {
       log_->info("handle transaction");
-      auto h = hash(*transaction).to_string();
+      const auto &h = hash(*transaction).to_string();
 
       if (!validator_->validate(*transaction)) {
         log_->info("stateless validation failed");
@@ -110,14 +115,6 @@ namespace iroha {
     rxcpp::observable<TxResponse>
     TransactionProcessorImpl::transactionNotifier() {
       return notifier_.get_observable();
-    }
-
-    template <typename Model>
-    void TransactionProcessorImpl::notify_success(Model &&m) {
-      auto h = hash(m).to_string();
-      proposal_set_.erase(h);
-      candidate_set_.insert(h);
-      notify(h, Status::STATEFUL_VALIDATION_SUCCESS);
     }
 
     void TransactionProcessorImpl::notify(const std::string &hash, Status s) {

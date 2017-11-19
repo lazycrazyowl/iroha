@@ -15,10 +15,9 @@
  * limitations under the License.
  */
 
-#include "module/irohad/ametsuchi/ametsuchi_mocks.hpp"
+#include "module/irohad/multi_sig_transactions/mst_mocks.hpp"
 #include "module/irohad/network/network_mocks.hpp"
 #include "module/irohad/torii/torii_mocks.hpp"
-#include "module/irohad/multi_sig_transactions/mst_mocks.hpp"
 #include "module/irohad/validation/validation_mocks.hpp"
 
 #include "framework/test_subscriber.hpp"
@@ -70,7 +69,9 @@ class TransactionProcessorTest : public ::testing::Test {
 };
 
 /**
- * Transaction processor test case, when handling stateless valid transaction
+ * @given simple tx and permanently true tx validator
+ * @when transaction_processor handle it
+ * @then it returns STATELESS_VALIDATION_SUCCESS
  */
 TEST_F(TransactionProcessorTest, ValidTransaction) {
   EXPECT_CALL(*mp, propagateTransactionImpl(_)).Times(0);
@@ -94,7 +95,9 @@ TEST_F(TransactionProcessorTest, ValidTransaction) {
 }
 
 /**
- * Transaction processor test case, when handling invalid transaction
+ * @given simple tx and permanently false tx validator
+ * @when transaction_processor handle it
+ * @then it returns STATELESS_VALIDATION_FAILED
  */
 TEST_F(TransactionProcessorTest, InvalidTransaction) {
   EXPECT_CALL(*mp, propagateTransactionImpl(_)).Times(0);
@@ -118,8 +121,8 @@ TEST_F(TransactionProcessorTest, InvalidTransaction) {
 }
 
 /**
- * @given multisig tx
- * @when propagate it with big quorum
+ * @given multisig tx and permanently true tx validator
+ * @when transaction_processor handle it
  * @then it goes to mst and after signing goes to PeerCommunicationService
  */
 TEST_F(TransactionProcessorTest, MultisigTransaction) {
@@ -151,9 +154,9 @@ TEST_F(TransactionProcessorTest, MultisigTransaction) {
 }
 
 /**
- * @given multisig tx
- * @when propagate it with big quorum
- * @then ensure after expiring it leads to EXPIRED status
+ * @given multisig tx and permanently true tx validator
+ * @when transaction_processor handle it
+ * @then ensure after expiring it leads to MST_EXPIRED status
  */
 TEST_F(TransactionProcessorTest, MultisigExpired) {
   EXPECT_CALL(*mp, propagateTransactionImpl(_)).Times(1);
@@ -172,7 +175,7 @@ TEST_F(TransactionProcessorTest, MultisigExpired) {
     auto resp = static_cast<TransactionResponse &>(*response);
     ASSERT_EQ(resp.current_status,
               idx++ == 0 ? TransactionResponse::STATELESS_VALIDATION_SUCCESS
-                         : TransactionResponse::EXPIRED);
+                         : TransactionResponse::MST_EXPIRED);
   });
   tp->transactionHandle(tx);
   mst_expired_notifier.get_subscriber().on_next(tx);

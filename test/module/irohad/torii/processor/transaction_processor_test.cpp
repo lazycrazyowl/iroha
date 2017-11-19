@@ -102,8 +102,6 @@ TEST_F(TransactionProcessorTest, InvalidTransaction) {
 
   EXPECT_CALL(*validation, validate(A<const Transaction &>()))
       .WillRepeatedly(Return(false));
-  EXPECT_CALL(*validation, validate(A<std::shared_ptr<const Query>>()))
-      .WillRepeatedly(Return(false));
 
   auto tx = std::make_shared<Transaction>();
   tx->signatures.emplace_back();

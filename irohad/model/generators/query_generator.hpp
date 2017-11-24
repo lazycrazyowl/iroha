@@ -14,12 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "model/common.hpp"
 #include "model/queries/get_account.hpp"
 #include "model/queries/get_account_assets.hpp"
 #include "model/queries/get_account_detail.hpp"
 #include "model/queries/get_signatories.hpp"
 #include "model/queries/get_transactions.hpp"
-
+#include "model/queries/get_account_transactions.hpp"
 #include "model/queries/get_asset_info.hpp"
 #include "model/queries/get_roles.hpp"
 
@@ -53,10 +54,6 @@ namespace iroha {
                                               uint64_t query_counter,
                                               std::string account_id);
 
-        std::shared_ptr<GetAccountTransactions> generateGetAccountTransactions(
-            ts64_t timestamp, std::string creator, uint64_t query_counter,
-            std::string account_id);
-
         std::shared_ptr<GetAccountAssetTransactions> generateGetAccountAssetTransactions(
             ts64_t timestamp, std::string creator, uint64_t query_counter,
             std::string account_id, std::string asset_id);
@@ -64,6 +61,14 @@ namespace iroha {
         std::shared_ptr<GetTransactions> generateGetTransactions(
             ts64_t timestamp, const std::string& creator, uint64_t query_counter,
             const std::vector<iroha::hash256_t>& tx_hashes);
+
+        optional_ptr<GetAccountTransactions>
+        generateGetAccountTransactions(
+            ts64_t timestamp,
+            const std::string& creator,
+            uint64_t query_counter,
+            const std::string& account_id,
+            const model::Pager& pager) const;
 
         /**
          * Generate default query GetAssetInfo

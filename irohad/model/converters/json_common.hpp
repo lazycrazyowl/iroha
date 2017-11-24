@@ -34,6 +34,7 @@
 #include "model/common.hpp"
 #include "model/signature.hpp"
 #include "model/queries/get_transactions.hpp"
+#include "model/queries/pager.hpp"
 
 namespace iroha {
   namespace model {
@@ -227,6 +228,17 @@ namespace iroha {
       }
 
       template <>
+      struct Convert<Pager> {
+        template <typename T>
+        auto operator()(T &&x) {
+          auto des = makeFieldDeserializer(x);
+          return nonstd::make_optional<Pager>()
+                 | des.String(&Pager::tx_hash, "tx_hash")
+                 | des.Uint(&Pager::limit, "limit");
+        }
+      };
+
+      template <>
       struct Convert<Signature> {
         template <typename T>
         auto operator()(T &&x) {
@@ -286,6 +298,15 @@ namespace iroha {
             acc_hashes);
         }
       };
+
+      /**
+       * Serialize pager to JSON with given allocator
+       * @param pager - pager for restricting to get transactions
+       * @param allocator - allocator for JSON value
+       * @return JSON value with pager
+       */
+      rapidjson::Value serializePager(
+        const Pager &pager, rapidjson::Document::AllocatorType &allocator);
 
       /**
        * Serialize signature to JSON with given allocator

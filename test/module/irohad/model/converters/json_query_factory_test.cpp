@@ -44,9 +44,7 @@ TEST(QuerySerializerTest, ClassHandlerTest) {
   std::vector<std::shared_ptr<Query>> commands = {
       std::make_shared<GetAccount>(),
       std::make_shared<GetAccountAssets>(),
-      std::make_shared<GetSignatories>(),
-      std::make_shared<GetAccountAssetTransactions>(),
-      std::make_shared<GetAccountTransactions>()
+      std::make_shared<GetSignatories>()
   };
   for (const auto &command : commands) {
     auto ser = factory.serialize(command);

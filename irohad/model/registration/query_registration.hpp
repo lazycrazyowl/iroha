@@ -28,6 +28,7 @@
 #include "model/queries/get_roles.hpp"
 #include "model/queries/get_signatories.hpp"
 #include "model/queries/get_transactions.hpp"
+#include "model/queries/get_account_transactions.hpp"
 
 /**
  * File contains registration for all query subclasses

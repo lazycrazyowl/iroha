@@ -11,6 +11,11 @@ message GetSignatories {
   string account_id = 1;
 }
 
+message Pager {
+  bytes tx_hash = 1;
+  uint32 limit = 2;
+}
+
 message GetAccountTransactions {
   string account_id = 1;
 }

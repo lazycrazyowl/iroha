@@ -206,13 +206,12 @@ namespace iroha_cli {
     std::shared_ptr<iroha::model::Query>
     InteractiveQueryCli::parseGetAccountTransactions(QueryParams params) {
       /// TODO 01/11/17 motxx - Make interactive-cli use named arguments.
-      return (parsePager(params[1], params[2]) |
-              [this, &params](auto pager) {
-                return generator_.generateGetAccountTransactions(
-                    local_time_, creator_, counter_, params[0], pager);
-              })
-        .value_or(nullptr);  /// HACK 26/06/11 motxx: danger solution
-                             /// because return-type is not nullopt but nullptr
+      auto ret =
+        parsePager(params[1], params[2]) | [this, &params](auto pager) {
+          return generator_.generateGetAccountTransactions(
+            local_time_, creator_, counter_, params[0], pager);
+        };
+      return ret.value_or(nullptr);
     }
 
     std::shared_ptr<iroha::model::Query>

@@ -286,7 +286,7 @@ namespace framework {
       explicit EqualToList(std::vector<T> expected_values) noexcept
         : expected_values_(std::move(expected_values)) {}
 
-      explicit EqualToList(EqualToList<T> &&rhs) noexcept {
+      EqualToList(EqualToList<T> &&rhs) noexcept {
         std::move(rhs.expected_values_.begin(),
                   rhs.expected_values_.end(),
                   std::back_inserter(expected_values_.begin()));

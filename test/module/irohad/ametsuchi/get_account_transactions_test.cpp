@@ -83,7 +83,7 @@ class GetAccountTransactionsTest : public AmetsuchiTest {
 
     const auto genesis_block =
         BlockGenerator().generateBlock(0, 1, iroha::hash256_t{}, {genesis_tx});
-    EXPECT_TRUE(storage->insertBlock(genesis_block));
+    ASSERT_TRUE(storage->insertBlock(genesis_block));
 
     given_txs.emplace_back(generate_random_tx(ALICE_ID));
     given_txs.emplace_back(generate_random_tx(ALICE_ID));

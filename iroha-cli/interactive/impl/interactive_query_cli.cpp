@@ -29,10 +29,8 @@
 #include "model/converters/json_query_factory.hpp"
 #include "model/queries/get_asset_info.hpp"
 #include "model/queries/get_roles.hpp"
-#include "types.hpp"
 
 using namespace iroha::model;
-using iroha::operator|;
 
 namespace iroha_cli {
   namespace interactive {
@@ -170,37 +168,35 @@ namespace iroha_cli {
     }
 
     nonstd::optional<iroha::model::Pager> InteractiveQueryCli::parsePager(
-        const std::string& encoded_tx_hash, const std::string& limit_str) {
-      return nonstd::make_optional<iroha::model::Pager>()
-        | [&encoded_tx_hash](iroha::model::Pager pager)
-            -> nonstd::optional<iroha::model::Pager> {
-            /**
-             * Use '-' as the argument of tx_hash to specify that
-             * the hash is empty because interactive cli splits
-             * arguments by space.
-             */
-            const auto PAGER_TX_HASH_EMPTY = "-";
-            if (encoded_tx_hash == PAGER_TX_HASH_EMPTY) {
-              pager.tx_hash.fill(0);
-            } else {
-              const auto decoded_hash =
-                  iroha::hexstringToBytestring(encoded_tx_hash);
-              if (not decoded_hash) {
-                return nonstd::nullopt;
-              }
-              pager.tx_hash = iroha::hash256_t::from_string(*decoded_hash);
-            }
-            return pager;
-          }
-        | [&limit_str](auto pager)
-            -> nonstd::optional<iroha::model::Pager> {
-          try {
-            pager.limit = boost::lexical_cast<decltype(pager.limit)>(limit_str);
-          } catch (...) {
-            return nonstd::nullopt;
-          }
-          return pager;
-        };
+        const std::string &encoded_tx_hash, const std::string &limit_str) {
+      return nonstd::make_optional<iroha::model::Pager>() |
+             [&encoded_tx_hash](iroha::model::Pager pager)
+               -> nonstd::optional<iroha::model::Pager> {
+               /**
+                * Use '-' as the argument of tx_hash to specify that
+                * the hash is empty because interactive cli splits
+                * arguments by space.
+                */
+               const auto PAGER_TX_HASH_EMPTY = "-";
+               if (encoded_tx_hash == PAGER_TX_HASH_EMPTY) {
+                 pager.tx_hash.fill(0);
+               } else {
+                 const auto decoded_hash =
+                   iroha::hexstringToBytestring(encoded_tx_hash);
+                 if (not decoded_hash) {
+                   return nonstd::nullopt;
+                 }
+                 pager.tx_hash = iroha::hash256_t::from_string(*decoded_hash);
+               }
+               return pager;
+             } | [&limit_str](auto pager) -> nonstd::optional<iroha::model::Pager> {
+        try {
+          pager.limit = boost::lexical_cast<decltype(pager.limit)>(limit_str);
+        } catch (...) {
+          return nonstd::nullopt;
+        }
+        return pager;
+      };
     }
 
     std::shared_ptr<iroha::model::Query>
@@ -225,7 +221,7 @@ namespace iroha_cli {
         }
       });
       return generator_.generateGetTransactions(
-        local_time_, creator_, counter_, tx_hashes);
+          local_time_, creator_, counter_, tx_hashes);
     }
 
     std::shared_ptr<iroha::model::Query>

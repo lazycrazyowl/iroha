@@ -146,9 +146,7 @@ TEST(PbQueryFactoryTest, get_asset_info){
  * @then validate success.
  */
 TEST(PbQueryFactoryTest, SerializeGetAccountTransactions){
-  PbQueryFactory queryFactory;
-  QueryGenerator queryGenerator;
-  auto query = queryGenerator.generateGetAccountTransactions(
+  auto query = QueryGenerator{}.generateGetAccountTransactions(
     0, "123", 0, "test", Pager{iroha::hash256_t{}, 1});
   ASSERT_TRUE(query.has_value());
   runQueryTest(*query);

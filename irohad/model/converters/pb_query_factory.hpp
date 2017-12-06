@@ -75,10 +75,6 @@ namespace iroha {
         protocol::Query serializeGetRolePermissions(
             std::shared_ptr<const Query> query) const;
 
-        // Specific deserializer
-        model::Pager deserializePager(
-          const protocol::Pager &pb_pager) const;
-
         /**
          * Serialize and add meta data of model query to proto query
          * @param pb_query - protocol query  object

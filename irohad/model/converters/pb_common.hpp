@@ -23,7 +23,9 @@
 #include "common/types.hpp"
 #include "cryptography/ed25519_sha3_impl/internal/ed25519_impl.hpp"
 #include "cryptography/ed25519_sha3_impl/internal/sha3_hash.hpp"
+#include "model/queries/pager.hpp"
 #include "model/signature.hpp"
+#include "queries.pb.h"
 
 namespace iroha {
   namespace model {
@@ -31,19 +33,34 @@ namespace iroha {
       // amount
       protocol::Amount serializeAmount(iroha::Amount iroha_amount);
       iroha::Amount deserializeAmount(protocol::Amount pb_amount);
-    }
-  }
 
-  /**
-   * Calculate hash from protobuf model object
-   * @tparam T - protobuf model type
-   * @param pb - protobuf model object
-   * @return hash of object payload
-   */
-  template <typename T>
-  hash256_t hash(const T &pb) {
-    return sha3_256(pb.payload().SerializeAsString());
-  }
-}
+      /**
+       * Serialize pager from model to proto
+       * @param pager - model Pager
+       * @return protocol Pager
+       */
+      protocol::Pager serializePager(const model::Pager &pager);
+
+      /**
+       * Deserialize pager from proto to model
+       * @param pb_pager - model Pager. If the size of tx_hash is invalid,
+       * regards hash as empty.
+       * @return model Pager
+       */
+      model::Pager deserializePager(const protocol::Pager &pb_pager);
+
+      /**
+       * Calculate hash from protobuf model object
+       * @tparam T - protobuf model type
+       * @param pb - protobuf model object
+       * @return hash of object payload
+       */
+      template <typename T>
+      hash256_t hash(const T &pb) {
+        return sha3_256(pb.payload().SerializeAsString());
+      }
+    }  // namespace converters
+  }    // namespace model
+}  // namespace iroha
 
 #endif  // IROHA_PB_COMMON_HPP

@@ -77,18 +77,18 @@ namespace iroha {
 
   hash256_t hash(const model::Transaction &tx) {
     auto &&pb_dat = tx_factory.serialize(tx);
-    return hash(pb_dat);
+    return model::converters::hash(pb_dat);
   }
 
   hash256_t hash(const model::Block &block) {
     auto &&pb_dat = block_factory.serialize(block);
-    return hash(pb_dat);
+    return model::converters::hash(pb_dat);
   }
 
   hash256_t hash(const model::Query &query) {
     std::shared_ptr<const model::Query> qptr(&query, [](auto) {});
     auto &&pb_dat = query_factory.serialize(qptr);
-    return hash(*pb_dat);
+    return model::converters::hash(*pb_dat);
   }
 
 }  // namespace iroha

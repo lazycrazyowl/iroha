@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+#include "model/converters/pb_common.hpp"
 #include "model/converters/pb_query_factory.hpp"
 #include <queries.pb.h>
 #include "cryptography/ed25519_sha3_impl/internal/sha3_hash.hpp"
@@ -227,6 +228,7 @@ namespace iroha {
         auto pb_query_mut =
             pb_query.mutable_payload()->mutable_get_account_transactions();
         pb_query_mut->set_account_id(tmp->account_id);
+        *pb_query_mut->mutable_pager() = serializePager(tmp->pager);
         return pb_query;
       }
 

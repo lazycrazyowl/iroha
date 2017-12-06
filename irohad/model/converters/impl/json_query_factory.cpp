@@ -117,7 +117,6 @@ namespace iroha {
       JsonQueryFactory::deserializeGetAccountAssetTransactions(
           const Value &obj_query) {
         auto des = makeFieldDeserializer(obj_query);
-
         return make_optional_ptr<GetAccountAssetTransactions>()
             | des.String(&GetAccountAssetTransactions::account_id, "account_id")
             | des.String(&GetAccountAssetTransactions::asset_id, "asset_id")

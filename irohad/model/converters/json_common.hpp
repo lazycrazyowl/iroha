@@ -306,7 +306,7 @@ namespace iroha {
        * @return JSON value with pager
        */
       rapidjson::Value serializePager(
-        const Pager &pager, rapidjson::Document::AllocatorType &allocator);
+          const Pager &pager, rapidjson::Document::AllocatorType &allocator);
 
       /**
        * Serialize signature to JSON with given allocator

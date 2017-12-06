@@ -87,7 +87,7 @@ namespace iroha {
       QueryGenerator::generateGetAccountTransactions(
           ts64_t timestamp, const std::string& creator,
           uint64_t query_counter, const std::string& account_id,
-        const model::Pager& pager) const {
+          const model::Pager& pager) const {
         auto query = std::make_shared<GetAccountTransactions>();
         query->created_ts = timestamp;
         query->creator_account_id = creator;

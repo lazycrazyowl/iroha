@@ -522,7 +522,9 @@ TEST_F(ToriiQueriesTest, FindTransactionsWhenValid) {
 }
 
 /**
- * Test for transactions response
+ * @given Stateless and stateful valid transactions and ametsuchi mocks
+ * @when Query GetAccountTransactions to the torii endpoint
+ * @then Validate responses are valid
  */
 TEST_F(ToriiQueriesTest, FindTransactionsWhenValid) {
   EXPECT_CALL(*statelessValidatorMock,

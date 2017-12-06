@@ -38,11 +38,11 @@ namespace iroha {
 
         /**
          * Generate block from give meta data and transaction list
-         * @param created_ts
-         * @param height
-         * @param prev_hash
+         * @param created_ts - block created time
+         * @param height - block height
+         * @param prev_hash - previous block hash
          * @param transactions
-         * @return
+         * @return model Block
          */
         iroha::model::Block generateBlock(
           ts64_t created_ts,

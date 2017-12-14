@@ -32,7 +32,8 @@ constexpr const char *Ip = "0.0.0.0";
 constexpr int Port = 50051;
 
 constexpr size_t TimesFind = 1;
-const iroha::model::Pager NO_PAGER {iroha::hash256_t{}, 100};
+const iroha::model::Pager NO_PAGER {iroha::hash256_t{},
+                                    iroha::model::Pager::MAX_PAGER_LIMIT};
 
 using ::testing::Return;
 using ::testing::A;

@@ -39,8 +39,8 @@ using iroha::model::generators::BlockGenerator;
 using iroha::model::generators::TransactionGenerator;
 using iroha::model::generators::CommandGenerator;
 
-static const auto NO_PAGER = iroha::model::Pager{iroha::hash256_t{}, 10000};
-
+static const auto NO_PAGER = iroha::model::Pager{
+  iroha::hash256_t{}, iroha::model::Pager::MAX_PAGER_LIMIT};
 static const auto DOMAIN_ID = std::string("domain");
 static const auto DOMAIN_USER_DEFAULT_ROLE = std::string("user");
 static const auto ALICE_NAME = std::string("alice");
@@ -151,12 +151,12 @@ TEST_F(GetAccountTransactionsTest, SkipOtherCreatorWhenGetAcctTxsPagerLimit1) {
 /**
  * @brief Valid when num of inserted txs in storage less than pager.limit.
  * @given StorageImpl
- * @when Query alice's transactions with pager.limit = 100
+ * @when Query alice's transactions with pager.limit = Pager::MAX_PAGER_LIMIT
  * @then Alice's transactions can be retrieved.
  */
 TEST_F(GetAccountTransactionsTest,
        AllTxsWhenGetAcctTxsInsNumLessThanPagerLimit) {
-  const auto pager = Pager{iroha::hash256_t{}, 100};
+  const auto pager = Pager{iroha::hash256_t{}, Pager::MAX_PAGER_LIMIT};
   auto wrapper = make_test_subscriber<EqualToList>(
       blocks->getAccountTransactions(ALICE_ID, pager),
       std::vector<Transaction>{given_txs[3], given_txs[1], given_txs[0]});
@@ -166,11 +166,12 @@ TEST_F(GetAccountTransactionsTest,
 /**
  * @brief Validate a transaction specified by tx_hash is excluded.
  * @given StorageImpl
- * @when Query alice's transactions with pager{tx_hash: tx2, limit: 100}
+ * @when Query alice's transactions with pager{tx_hash: tx2, limit:
+ * MAX_PAGER_LIMIT}
  * @then Alice's transactions [1, 0] can be retrieved.
  */
 TEST_F(GetAccountTransactionsTest, GetAcctTxsWithPagerHash) {
-  const auto pager = Pager{iroha::hash(given_txs[3]), 100};
+  const auto pager = Pager{iroha::hash(given_txs[3]), Pager::MAX_PAGER_LIMIT};
   auto wrapper = make_test_subscriber<EqualToList>(
       blocks->getAccountTransactions(ALICE_ID, pager),
       std::vector<Transaction>{given_txs[1], given_txs[0]});
@@ -181,13 +182,14 @@ TEST_F(GetAccountTransactionsTest, GetAcctTxsWithPagerHash) {
  * @brief Valid when the tx of pager.tx_hash doesn't belong to the query's
  * creator.
  * @given StorageImpl
- * @when Query alice's transactions with pager{tx_hash: tx2, limit: 100}
+ * @when Query alice's transactions with pager{tx_hash: tx2, limit:
+ * MAX_PAGER_LIMIT}
  * @then One transaction 1 can be retrieved.
  *
  * @note A tx which corresponds to pager.tx_hash is excluded in response.
  */
 TEST_F(GetAccountTransactionsTest, GetAcctTxsWithPagerOtherCreatorHash) {
-  const auto pager = Pager{iroha::hash(given_txs[2]), 100};
+  const auto pager = Pager{iroha::hash(given_txs[2]), Pager::MAX_PAGER_LIMIT};
   auto wrapper1 = make_test_subscriber<EqualToList>(
       blocks->getAccountTransactions(ALICE_ID, pager),
       std::vector<Transaction>{given_txs[1], given_txs[0]});
@@ -198,7 +200,7 @@ TEST_F(GetAccountTransactionsTest, GetAcctTxsWithPagerOtherCreatorHash) {
  * @brief Regards pager.tx_hash as empty when the hash is invalid.
  * @given StorageImpl
  * @when Query alice's transactions with pager{tx_hash: invalid bytes, limit:
- * 100}
+ * MAX_PAGER_LIMIT}
  * @then Regards pager.tx_hash as empty and transactions [3, 2, 1] can be
  * retrieved.
  */
@@ -206,7 +208,7 @@ TEST_F(GetAccountTransactionsTest,
        RegardsTxHashAsEmptyWhenGetAcctTxsWithInvalidHash) {
   iroha::hash256_t invalid_hash;
   invalid_hash.at(0) = 1;
-  const auto pager = Pager{invalid_hash, 100};
+  const auto pager = Pager{invalid_hash, Pager::MAX_PAGER_LIMIT};
   auto wrapper = make_test_subscriber<EqualToList>(
       blocks->getAccountTransactions(ALICE_ID, pager),
       std::vector<Transaction>{given_txs[3], given_txs[1], given_txs[0]});
@@ -216,27 +218,25 @@ TEST_F(GetAccountTransactionsTest,
 /**
  * @brief No transactions when the query's creator is not found.
  * @given StorageImpl
- * @when Query none@somewhere creator's transactions with pager.limit = 100
+ * @when Query none@somewhere creator's transactions with default pager (limit = 100)
  * @then No transactions can be retrieved.
  */
 TEST_F(GetAccountTransactionsTest, NoTxsWhenGetAcctTxsWithInvalidCreator) {
   const auto no_account = "none@somewhere";
-  const auto pager = Pager{iroha::hash256_t{}, 100};
   auto wrapper = make_test_subscriber<CallExact>(
-      blocks->getAccountTransactions(no_account, pager), 0);
+      blocks->getAccountTransactions(no_account), 0);
   ASSERT_TRUE(wrapper.subscribe().validate());
 }
 
 /**
  * @brief No transactions when the storage is empty.
  * @given Empty StorageImpl
- * @when Query Alice's transactions with pager.limit = 100
+ * @when Query Alice's transactions with default pager (limit = 100)
  * @then No transactions can be retrieved.
  */
 TEST_F(GetAccountTransactionsTest, NoTxsWhenGetAcctTxsToEmptyStorage) {
   storage->dropStorage();
-  const auto pager = Pager{iroha::hash256_t{}, 100};
   auto wrapper = make_test_subscriber<CallExact>(
-      blocks->getAccountTransactions(ALICE_ID, pager), 0);
+      blocks->getAccountTransactions(ALICE_ID), 0);
   ASSERT_TRUE(wrapper.subscribe().validate());
 }

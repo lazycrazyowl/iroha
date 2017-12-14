@@ -263,6 +263,40 @@ TEST(QuerySerializerTest, get_role_permissions){
 }
 
 /**
+ * Test model for SerializePager
+ */
+struct TestPagerModel {
+  Pager pager{};
+};
+
+/**
+ * @given Random pager value
+ * @when serialize it then deserialize it
+ * @then Validate random pager value is equal to the expected value.
+ */
+TEST(QuerySerializerTest, SerializePager) {
+  JsonQueryFactory queryFactory;
+  decltype(std::declval<Pager>().tx_hash) tx_hash;
+  tx_hash.fill(1);
+  const auto pager = Pager{tx_hash, 1};
+
+  rapidjson::Document json_doc;
+  auto &allocator = json_doc.GetAllocator();
+  json_doc.SetObject();
+  rapidjson::Value json_pager;
+  json_pager.SetObject();
+  json_pager.CopyFrom(serializePager(pager, allocator), allocator);
+  json_doc.AddMember("pager", json_pager, allocator);
+
+  std::cout << jsonToString(json_doc) << "\n";
+  auto des = makeFieldDeserializer(json_doc);
+  const auto des_pager = (nonstd::make_optional(TestPagerModel{})
+                          | des.Object(&TestPagerModel::pager, "pager"))
+                             ->pager;
+  ASSERT_EQ(pager, des_pager);
+}
+
+/**
  * @given Generated GetAccountTransactions query with random signature.
  * @when serialize it, then deserialize the product.
  * @then Validate the generated value is equal to the deserialized value.

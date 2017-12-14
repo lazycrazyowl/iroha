@@ -34,9 +34,14 @@ namespace iroha {
       iroha::hash256_t tx_hash{};
 
       /**
-       * Number of max transactions to fetch transactinos.
+       * Number of max transactions to fetch transactions
        */
       uint16_t limit{};
+
+      /**
+       * Max number of limit
+       */
+      static constexpr uint16_t MAX_PAGER_LIMIT = 100;
 
       bool operator==(Pager const& rhs) const {
         return tx_hash == rhs.tx_hash and limit == rhs.limit;

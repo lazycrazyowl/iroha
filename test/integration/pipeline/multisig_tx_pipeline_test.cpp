@@ -27,11 +27,11 @@
  * @then check that block contains transaction
  */
 TEST(MST, OnePeerSendsTest) {
+  // TODO 21/12/2017 muratovv rework with auto erased crypto manager
   auto seed = iroha::create_seed("foo");
   auto key_pair = iroha::create_keypair(seed);
 
-  integration_framework::IntegrationTestFramework test_case;
-  test_case
+  integration_framework::IntegrationTestFramework()
       .setInitialState(
           key_pair,
           iroha::model::Block{})  // todo replace with valid genesis block

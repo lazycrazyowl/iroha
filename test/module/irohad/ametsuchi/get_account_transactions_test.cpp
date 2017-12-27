@@ -17,7 +17,7 @@
 
 #include <boost/optional.hpp>
 #include "ametsuchi/impl/storage_impl.hpp"
-#include "crypto/hash.hpp"
+#include "cryptography/ed25519_sha3_impl/internal/sha3_hash.hpp"
 #include "framework/test_subscriber.hpp"
 #include "generator/generator.hpp"
 #include "model/commands/add_asset_quantity.hpp"
@@ -29,6 +29,7 @@
 #include "model/generators/block_generator.hpp"
 #include "model/generators/transaction_generator.hpp"
 #include "model/permissions.hpp"
+#include "model/queries/pager.hpp"
 #include "module/irohad/ametsuchi/ametsuchi_fixture.hpp"
 
 using namespace iroha::ametsuchi;
@@ -171,7 +172,8 @@ TEST_F(GetAccountTransactionsTest,
  * @then Alice's transactions [1, 0] can be retrieved.
  */
 TEST_F(GetAccountTransactionsTest, GetAcctTxsWithPagerHash) {
-  const auto pager = Pager{iroha::hash(given_txs[3]), Pager::MAX_PAGER_LIMIT};
+  const auto pager = Pager{iroha::hash(given_txs[3]),
+                           Pager::MAX_PAGER_LIMIT};
   auto wrapper = make_test_subscriber<EqualToList>(
       blocks->getAccountTransactions(ALICE_ID, pager),
       std::vector<Transaction>{given_txs[1], given_txs[0]});

@@ -31,6 +31,7 @@
 #include "model/queries/get_roles.hpp"
 
 using namespace iroha::model;
+using iroha::operator|;
 
 namespace iroha_cli {
   namespace interactive {

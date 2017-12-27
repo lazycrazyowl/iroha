@@ -62,13 +62,13 @@ namespace iroha {
             ts64_t timestamp, const std::string& creator, uint64_t query_counter,
             const std::vector<iroha::hash256_t>& tx_hashes);
 
-        optional_ptr<GetAccountTransactions>
-        generateGetAccountTransactions(
+        optional_ptr<GetAccountTransactions> generateGetAccountTransactions(
             ts64_t timestamp,
-            const std::string& creator,
+            const std::string &creator,
             uint64_t query_counter,
-            const std::string& account_id,
-            const model::Pager& pager) const;
+            const std::string &account_id,
+            const model::Pager &pager = model::Pager{
+              iroha::hash256_t{}, model::Pager::MAX_PAGER_LIMIT}) const;
 
         /**
          * Generate default query GetAssetInfo

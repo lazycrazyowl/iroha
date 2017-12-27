@@ -18,6 +18,7 @@
 #include "framework/test_subscriber.hpp"
 #include "module/irohad/ametsuchi/ametsuchi_mocks.hpp"
 #include "model/permissions.hpp"
+#include "model/generators/command_generator.hpp"
 #include "model/generators/transaction_generator.hpp"
 #include "model/generators/query_generator.hpp"
 #include "model/generators/command_generator.hpp"
@@ -28,6 +29,7 @@
 #include "model/queries/responses/roles_response.hpp"
 #include "model/queries/responses/signatories_response.hpp"
 #include "model/queries/responses/transactions_response.hpp"
+#include "model/queries/pager.hpp"
 #include "model/query_execution.hpp"
 
 using ::testing::Return;
@@ -38,7 +40,11 @@ using ::testing::StrictMock;
 
 using namespace iroha::ametsuchi;
 using namespace iroha::model;
+using namespace iroha::model::generators;
 using namespace framework::test_subscriber;
+
+static const auto NO_PAGER = Pager{
+  iroha::hash256_t{}, Pager::MAX_PAGER_LIMIT};
 
 class QueryValidateExecuteTest : public ::testing::Test {
  public:
@@ -546,6 +552,7 @@ class GetAccountTransactionsTest : public QueryValidateExecuteTest {
     get_tx = std::make_shared<GetAccountTransactions>();
     get_tx->account_id = admin_id;
     get_tx->creator_account_id = admin_id;
+    get_tx->pager = NO_PAGER;
     query = get_tx;
     role_permissions = {can_get_my_acc_txs};
     txs_observable = getDefaultTransactions(account_id);
@@ -583,7 +590,7 @@ TEST_F(GetAccountTransactionsTest, MyAccountValidCase) {
 
   txs_observable = getDefaultTransactions(admin_id);
 
-  EXPECT_CALL(*block_query, getAccountTransactions(admin_id))
+  EXPECT_CALL(*block_query, getAccountTransactions(admin_id, NO_PAGER))
       .WillOnce(Return(txs_observable));
   auto response = validateAndExecute();
   auto cast_resp = std::static_pointer_cast<TransactionsResponse>(response);
@@ -608,7 +615,7 @@ TEST_F(GetAccountTransactionsTest, AllAccountValidCase) {
   EXPECT_CALL(*wsv_query, getRolePermissions(admin_role))
       .WillOnce(Return(role_permissions));
 
-  EXPECT_CALL(*block_query, getAccountTransactions(account_id))
+  EXPECT_CALL(*block_query, getAccountTransactions(account_id, NO_PAGER))
       .WillOnce(Return(txs_observable));
   auto response = validateAndExecute();
 
@@ -632,7 +639,7 @@ TEST_F(GetAccountTransactionsTest, DomainAccountValidCase) {
   EXPECT_CALL(*wsv_query, getRolePermissions(admin_role))
       .WillOnce(Return(role_permissions));
 
-  EXPECT_CALL(*block_query, getAccountTransactions(account_id))
+  EXPECT_CALL(*block_query, getAccountTransactions(account_id, NO_PAGER))
       .WillOnce(Return(txs_observable));
   auto response = validateAndExecute();
 
@@ -660,7 +667,7 @@ TEST_F(GetAccountTransactionsTest, GrantAccountValidCase) {
                   admin_id, get_tx->account_id, can_get_my_acc_txs))
       .WillOnce(Return(true));
 
-  EXPECT_CALL(*block_query, getAccountTransactions(account_id))
+  EXPECT_CALL(*block_query, getAccountTransactions(account_id, NO_PAGER))
       .WillOnce(Return(txs_observable));
   auto response = validateAndExecute();
 
@@ -707,7 +714,7 @@ TEST_F(GetAccountTransactionsTest, NoAccountExist) {
   EXPECT_CALL(*wsv_query, getRolePermissions(admin_role))
       .WillOnce(Return(role_permissions));
 
-  EXPECT_CALL(*block_query, getAccountTransactions(get_tx->account_id))
+  EXPECT_CALL(*block_query, getAccountTransactions(get_tx->account_id, NO_PAGER))
       .WillOnce(Return(rxcpp::observable<>::empty<Transaction>()));
 
   auto response = validateAndExecute();
@@ -1115,42 +1122,4 @@ TEST_F(GetRolePermissionsTest, InValidCaseNoRole) {
   auto response = validateAndExecute();
   auto cast_resp = std::static_pointer_cast<ErrorResponse>(response);
   ASSERT_EQ(cast_resp->reason, ErrorResponse::NO_ROLES);
-}
-
-/**
- * @given MockBlockQuery is scheduled to return a transaction
- *        which creator ACCOUNT_ID
- * @when executes query processor
- * @then returns the inserted transaction
- */
-TEST(QueryExecutor, get_account_transactions) {
-  auto wsv_queries = std::make_shared<MockWsvQuery>();
-  auto block_queries = std::make_shared<MockBlockQuery>();
-
-  auto query_proccesor =
-    iroha::model::QueryProcessingFactory(wsv_queries, block_queries);
-
-  set_default_ametsuchi(*wsv_queries, *block_queries);
-
-  std::vector<Transaction> txs{
-    TransactionGenerator().generateTransaction(
-      ADMIN_ID, 0,
-      {CommandGenerator().generateCreateAccount(
-        ACCOUNT_NAME, DOMAIN_NAME, iroha::pubkey_t{})}
-    )};
-
-  // Insert sample transactions into MockBlockQuery
-  EXPECT_CALL(*block_queries, getAccountTransactions(ACCOUNT_ID, NO_PAGER))
-    .WillRepeatedly(Return(rxcpp::observable<>::iterate(txs)));
-
-  auto query = QueryGenerator().generateGetAccountTransactions(
-    0, ADMIN_ID, 0, ACCOUNT_ID, NO_PAGER);
-  ASSERT_TRUE(query.has_value());
-
-  auto response = query_proccesor.execute(*query);
-  auto cast_resp = std::dynamic_pointer_cast<TransactionsResponse>(response);
-  ASSERT_TRUE(cast_resp);
-  auto wrapper =
-    make_test_subscriber<EqualToList>(cast_resp->transactions, txs);
-  ASSERT_TRUE(wrapper.subscribe().validate());
 }

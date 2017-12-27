@@ -93,18 +93,6 @@ TEST(PbQueryFactoryTest, SerializeGetAccountDetail){
   ASSERT_EQ(iroha::hash(*res_query.value()), iroha::hash(*query));
 }
 
-TEST(PbQueryFactoryTest, SerializeGetAccountTransactions){
-  PbQueryFactory query_factory;
-  QueryGenerator query_generator;
-  auto query = query_generator.generateGetAccountTransactions(0, "123", 0, "test");
-  auto pb_query = query_factory.serialize(query);
-  ASSERT_TRUE(pb_query.has_value());
-  auto res_query = query_factory.deserialize(pb_query.value());
-  ASSERT_TRUE(res_query.has_value());
-  // TODO 26/09/17 grimadas: overload operator == for queries and replace with it IR-512 #goodfirstissue
-  ASSERT_EQ(iroha::hash(*res_query.value()), iroha::hash(*query));
-}
-
 TEST(PbQueryFactoryTest, SerializeGetTransactions){
   iroha::hash256_t hash1, hash2;
   hash1[0] = 1;

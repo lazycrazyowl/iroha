@@ -17,7 +17,7 @@
 
 #include "interfaces/base/primitive.hpp"
 #include "interfaces/common_objects/types.hpp"
-#include "model/queries/get_transactions.hpp"
+#include "model/queries/get_account_transactions.hpp"
 
 #ifndef IROHA_SHARED_MODEL_GET_ACCOUNT_TRANSACTIONS_HPP
 #define IROHA_SHARED_MODEL_GET_ACCOUNT_TRANSACTIONS_HPP

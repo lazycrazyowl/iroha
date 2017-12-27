@@ -17,7 +17,6 @@
 
 #include "model/converters/pb_common.hpp"
 #include "model/converters/pb_query_factory.hpp"
-#include <queries.pb.h>
 #include "cryptography/ed25519_sha3_impl/internal/sha3_hash.hpp"
 #include "model/common.hpp"
 #include "model/queries/get_account.hpp"
@@ -26,7 +25,9 @@
 #include "model/queries/get_asset_info.hpp"
 #include "model/queries/get_roles.hpp"
 #include "model/queries/get_signatories.hpp"
+#include "model/queries/get_account_transactions.hpp"
 #include "model/queries/get_transactions.hpp"
+#include "queries.pb.h"
 
 namespace iroha {
   namespace model {
@@ -106,10 +107,11 @@ namespace iroha {
               break;
             }
             case Query_Payload::QueryCase::kGetAccountTransactions: {
-              // Convert to get Signatories
+              // Convert to get account transactions
               const auto &pb_cast = pl.get_account_transactions();
               auto query = GetAccountTransactions();
               query.account_id = pb_cast.account_id();
+              query.pager = deserializePager(pb_cast.pager());
               val = std::make_shared<model::GetAccountTransactions>(query);
               break;
             }

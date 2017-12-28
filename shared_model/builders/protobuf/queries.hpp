@@ -124,13 +124,14 @@ namespace shared_model {
       }
 
       auto getAccountAssetTransactions(
-          const interface::types::AccountIdType &account_id,
-          const interface::types::AssetIdType &asset_id) const {
-        return queryField([&](auto proto_query) {
-          auto query = proto_query->mutable_get_account_asset_transactions();
-          query->set_account_id(account_id);
-          query->set_asset_id(asset_id);
+          const interface::types::AssetIdCollectionType &assets_id) {
+        auto query =
+            query_.mutable_payload()->mutable_get_account_asset_transactions();
+        query->set_account_id(account_id);
+        boost::for_each(assets_id, [&query](const auto &asset) {
+          query->add_assets_id(asset);
         });
+        return *this;
       }
 
       auto getAccountAssets(

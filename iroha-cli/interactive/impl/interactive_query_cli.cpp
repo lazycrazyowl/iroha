@@ -16,7 +16,7 @@
  */
 
 #include "interactive/interactive_query_cli.hpp"
-
+#include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include <fstream>
 #include "byteutils.hpp"
@@ -41,6 +41,7 @@ namespace iroha_cli {
           {GET_ACC, "Get Account Information"},
           {GET_ACC_AST, "Get Account's Assets"},
           {GET_ACC_TX, "Get Account's Transactions"},
+          {GET_ACC_AST_TX, "Get Account Asset's Transactions"},
           {GET_TX, "Get Transactions by transactions' hashes"},
           {GET_ACC_SIGN, "Get Account's Signatories"},
           {GET_ROLES, "Get all current roles in the system"},
@@ -51,6 +52,7 @@ namespace iroha_cli {
 
       const auto acc_id = "Requested account Id";
       const auto ast_id = "Requested asset Id";
+      const auto asts_id = "Requested assets Id";
       const auto pager_tx_hash = "Requested pager tx hash";
       const auto pager_limit = "Requested pager limit";
       const auto role_id = "Requested role name";
@@ -60,6 +62,7 @@ namespace iroha_cli {
           {GET_ACC, {acc_id}},
           {GET_ACC_AST, {acc_id, ast_id}},
           {GET_ACC_TX, {acc_id, pager_tx_hash, pager_limit}},
+          {GET_ACC_AST_TX, {acc_id, asts_id, pager_tx_hash, pager_limit}},
           {GET_TX, {tx_hashes}},
           {GET_ACC_SIGN, {acc_id}},
           {GET_ROLES, {}},
@@ -72,6 +75,7 @@ namespace iroha_cli {
           {GET_ACC, &InteractiveQueryCli::parseGetAccount},
           {GET_ACC_AST, &InteractiveQueryCli::parseGetAccountAssets},
           {GET_ACC_TX, &InteractiveQueryCli::parseGetAccountTransactions},
+          {GET_ACC_AST_TX, &InteractiveQueryCli::parseGetAccountAssetTransactions},
           {GET_TX, &InteractiveQueryCli::parseGetTransactions},
           {GET_ACC_SIGN, &InteractiveQueryCli::parseGetSignatories},
           {GET_ROLE_PERM, &InteractiveQueryCli::parseGetRolePermissions},
@@ -202,11 +206,22 @@ namespace iroha_cli {
 
     std::shared_ptr<iroha::model::Query>
     InteractiveQueryCli::parseGetAccountTransactions(QueryParams params) {
-      /// TODO 01/11/17 motxx - Make interactive-cli use named arguments.
       auto ret =
         parsePager(params[1], params[2]) | [this, &params](auto pager) {
           return generator_.generateGetAccountTransactions(
             local_time_, creator_, counter_, params[0], pager);
+        };
+      return ret.value_or(nullptr);
+    }
+
+    std::shared_ptr<iroha::model::Query>
+    InteractiveQueryCli::parseGetAccountAssetTransactions(QueryParams params) {
+      auto ret =
+        parsePager(params[2], params[3]) | [this, &params](auto pager) {
+          std::vector<std::string> assets;
+          boost::algorithm::split(assets, params[1], boost::is_any_of(","));
+          return generator_.generateGetAccountAssetTransactions(
+            local_time_, creator_, counter_, params[0], assets, pager);
         };
       return ret.value_or(nullptr);
     }

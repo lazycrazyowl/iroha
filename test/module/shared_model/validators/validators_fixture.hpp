@@ -18,6 +18,9 @@
 #ifndef IROHA_VALIDATORS_FIXTURE_HPP
 #define IROHA_VALIDATORS_FIXTURE_HPP
 
+#include <google/protobuf/dynamic_message.h>
+#include <google/protobuf/reflection.h>
+#include <google/protobuf/stubs/casts.h>
 #include <gtest/gtest.h>
 #include <boost/range/adaptor/transformed.hpp>
 #include <boost/range/algorithm/for_each.hpp>
@@ -25,12 +28,20 @@
 
 #include "datetime/time.hpp"
 #include "primitive.pb.h"
+#include "queries.pb.h"
 
 class ValidatorsTest : public ::testing::Test {
  public:
   ValidatorsTest() {
     valid_amount.set_precision(2);
     valid_amount.mutable_value()->set_fourth(1000);
+
+    valid_assets_id.Add("usd#domain");
+    valid_assets_id.Add("riel#domain");
+
+    valid_pager.set_tx_hash(
+        std::string(256 / 8, 1));  // in case of sha3_256 hash
+    valid_pager.set_limit(10);
 
     // Generate protobuf reflection setter for given type and value
     auto setField = [&](auto setter) {
@@ -70,8 +81,18 @@ class ValidatorsTest : public ::testing::Test {
     field_setters["tx_hashes"] = addString(valid_hash);
     field_setters["quorum"] = setUInt32(valid_quorum);
     field_setters["description"] = setString("");
-    field_setters["amount"] = [&](auto refl, auto msg, auto field) {
+    field_setters["amount"] = [this](auto refl, auto msg, auto field) {
       refl->MutableMessage(msg, field)->CopyFrom(valid_amount);
+    };
+    field_setters["assets_id"] = [this](auto refl, auto msg, auto field) {
+      std::for_each(valid_assets_id.begin(),
+                    valid_assets_id.end(),
+                    [refl, msg, field](auto const &asset_id) {
+                      refl->AddString(msg, field, asset_id);
+                    });
+    };
+    field_setters["pager"] = [this](auto refl, auto msg, auto field) {
+      refl->MutableMessage(msg, field)->CopyFrom(valid_pager);
     };
   }
 
@@ -138,6 +159,8 @@ class ValidatorsTest : public ::testing::Test {
   uint8_t valid_quorum = 2;
   uint8_t valid_precision = 42;
   iroha::protocol::Amount valid_amount;
+  google::protobuf::RepeatedPtrField<std::string> valid_assets_id;
+  iroha::protocol::Pager valid_pager;
   decltype(iroha::time::now()) valid_created_time;
 
   // List all used fields in commands

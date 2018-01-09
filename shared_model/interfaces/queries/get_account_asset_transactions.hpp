@@ -45,12 +45,16 @@ namespace shared_model {
       /**
        * @return pager of requested transactions
        */
-      virtual const interface::Pager &pager() const = 0;
+      virtual const Pager &pager() const = 0;
 
       OldModelType *makeOldModel() const override {
         auto oldModel = new iroha::model::GetAccountAssetTransactions;
         oldModel->account_id = accountId();
         oldModel->assets_id = assetsId();
+        // placement-new is used to avoid from allocating old style pager twice
+        auto oldModelPager =
+            std::unique_ptr<iroha::model::Pager>(pager().makeOldModel());
+        new (&oldModel->pager) iroha::model::Pager(*oldModelPager);
         return oldModel;
       }
 
@@ -59,11 +63,13 @@ namespace shared_model {
             .init("GetAccountAssetTransactions")
             .append("account_id", accountId())
             .append("assets_id", boost::algorithm::join(assetsId(), ","))
+            .append("pager", pager().toString())
             .finalize();
       }
 
       bool operator==(const ModelType &rhs) const override {
-        return accountId() == rhs.accountId() and assetsId() == rhs.assetsId();
+        return accountId() == rhs.accountId() and assetsId() == rhs.assetsId()
+            and pager() == rhs.pager();
       }
     };
 

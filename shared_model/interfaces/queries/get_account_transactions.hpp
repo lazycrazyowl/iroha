@@ -35,10 +35,18 @@ namespace shared_model {
        * @return account_id of requested transactions
        */
       virtual const types::AccountIdType &accountId() const = 0;
+      /**
+       * @return pager of requested transactions
+       */
+      virtual const Pager &pager() const = 0;
 
       virtual OldModelType *makeOldModel() const override {
         auto oldModel = new iroha::model::GetAccountTransactions;
         oldModel->account_id = accountId();
+        // placement-new is used to avoid from allocating old style pager twice
+        auto oldModelPager =
+          std::unique_ptr<iroha::model::Pager>(pager().makeOldModel());
+        new (&oldModel->pager) iroha::model::Pager(*oldModelPager);
         return oldModel;
       }
 
@@ -46,6 +54,7 @@ namespace shared_model {
         return detail::PrettyStringBuilder()
             .init("GetAccountTransactions")
             .append("account_id", accountId())
+            .append("pager", pager().toString())
             .finalize();
       }
 

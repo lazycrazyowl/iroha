@@ -36,7 +36,8 @@ namespace shared_model {
           : CopyableProto(std::forward<QueryType>(query)),
             account_transactions_(detail::makeReferenceGenerator(
                 &proto_->payload(),
-                &iroha::protocol::Query::Payload::get_account_transactions)) {}
+                &iroha::protocol::Query::Payload::get_account_transactions)),
+            pager_([this] { return Pager(account_transactions_->pager()); }) {}
 
       GetAccountTransactions(const GetAccountTransactions &o)
           : GetAccountTransactions(o.proto_) {}
@@ -48,6 +49,10 @@ namespace shared_model {
         return account_transactions_->account_id();
       }
 
+      const Pager &pager() const override {
+        return *pager_;
+      }
+
      private:
       // ------------------------------| fields |-------------------------------
 
@@ -56,6 +61,8 @@ namespace shared_model {
 
       const Lazy<const iroha::protocol::GetAccountTransactions &>
           account_transactions_;
+
+      const Lazy<Pager> pager_;
     };
 
   }  // namespace proto

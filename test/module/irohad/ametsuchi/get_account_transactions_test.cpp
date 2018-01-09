@@ -103,8 +103,7 @@ class GetAccountTransactionsTest : public AmetsuchiTest {
       const std::string &creator,
       const std::vector<std::shared_ptr<iroha::model::Command>> &commands = {
           CommandGenerator().generateCreateDomain(
-              generator::random_string(20, generator::random_lower_char),
-              "user")}) {
+              generator::randomString(20), "user")}) {
     return TransactionGenerator().generateTransaction(
         creator,
         static_cast<uint64_t>(generator::random_number(0, 1000)),

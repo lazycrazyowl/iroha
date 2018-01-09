@@ -148,7 +148,7 @@ class GetAccountAssetTransactionsTest : public AmetsuchiTest {
 
   std::shared_ptr<Command> generate_random_command() {
     return CommandGenerator().generateCreateDomain(
-        generator::random_string(20, generator::random_lower_char), "user");
+        generator::randomString(20), "user");
   }
 
   std::vector<Transaction> given_txs;

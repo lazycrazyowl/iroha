@@ -77,7 +77,7 @@ namespace shared_model {
         reason.first = "GetAccountAssetTransactions";
 
         validator_.validateAccountId(reason, qry->accountId());
-        validator_.validateAssetId(reason, qry->assetId());
+        validator_.validateAssetsId(reason, qry->assetsId());
 
         return reason;
       }

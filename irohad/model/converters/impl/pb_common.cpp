@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-#include <queries.pb.h>
 #include "model/converters/pb_common.hpp"
+#include "byteutils.hpp"
+#include "queries.pb.h"
 
 namespace iroha {
   namespace model {

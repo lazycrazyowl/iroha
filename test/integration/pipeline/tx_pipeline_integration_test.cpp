@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+#include "builders/protobuf/transaction.hpp"
+#include "builders/protobuf/queries.hpp"
 #include "responses.pb.h"
 #include "datetime/time.hpp"
 #include "integration/pipeline/tx_pipeline_integration_test_fixture.hpp"
@@ -136,4 +138,51 @@ TEST_F(TxPipelineIntegrationTest, GetTransactionsTest) {
   ASSERT_EQ(1, response.transactions_response().transactions().size());
   const auto got_pb_tx = response.transactions_response().transactions()[0];
   ASSERT_EQ(given_tx, *PbTransactionFactory{}.deserialize(got_pb_tx));
+}
+
+/**
+ * @given TransferAsset transaction from test@test to admin@test
+ * @when GetAccountTransaction query sent
+ * @then Validate the transaction response
+ */
+TEST_F(TxPipelineIntegrationTest, GetAccountTransactionsTest) {
+  auto creator_account_id = "test@test";
+  auto src_account_id = creator_account_id;
+  auto dest_account_id = "admin@test";
+  auto asset_id = "coin#test";
+  auto created_time = iroha::time::now();
+  auto tx_counter = 1;
+  auto query_counter = 1;
+
+  auto tx = shared_model::proto::TransactionBuilder()
+                .txCounter(tx_counter)
+                .creatorAccountId(creator_account_id)
+                .transferAsset(src_account_id, dest_account_id, asset_id, "test", "12.34")
+                .createdTime(created_time)
+                .build();
+
+  auto keypair =
+      shared_model::crypto::CryptoProviderEd25519Sha3::generateKeypair();
+  auto signedTx = tx.signAndAddSignature(keypair);
+  auto oldModelTx =
+      std::shared_ptr<iroha::model::Transaction>(signedTx.makeOldModel());
+
+  sendTxsInOrderAndValidate({*oldModelTx});
+
+  auto query = shared_model::proto::QueryBuilder()
+                   .createdTime(created_time)
+                   .creatorAccountId(creator_account_id)
+                   .getAccountTransactions(creator_account_id)
+                   .queryCounter(query_counter)
+                   .build();
+
+  auto signedQuery = query.signAndAddSignature(keypair);
+  iroha::protocol::QueryResponse response;
+  irohad->getQueryService()->FindAsync(signedQuery.getTransport(), response);
+
+  ASSERT_TRUE(response.has_transactions_response());
+  auto txResponse = response.transactions_response().transactions();
+  ASSERT_EQ(1, txResponse.size());
+  ASSERT_EQ(signedTx.getTransport().SerializeAsString(),
+            txResponse.Get(0).SerializeAsString());
 }

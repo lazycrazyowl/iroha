@@ -116,28 +116,38 @@ namespace shared_model {
       }
 
       auto getAccountTransactions(
-          const interface::types::AccountIdType &account_id) const {
+          const interface::types::AccountIdType &account_id,
+          const interface::Transaction::HashType &pager_tx_hash =
+            interface::Transaction::HashType(""),
+          const interface::Pager::Limit &pager_limit =
+            interface::Pager::MaxLimit{}) const {
         return queryField([&](auto proto_query) {
           auto query = proto_query->mutable_get_account_transactions();
           query->set_account_id(account_id);
+          auto &mutable_pager = *query->mutable_pager();
+          mutable_pager.set_tx_hash(toBinaryString(pager_tx_hash));
+          mutable_pager.set_limit(pager_limit);
         });
       }
 
       auto getAccountAssetTransactions(
           const interface::types::AccountIdType &account_id,
           const interface::types::AssetIdCollectionType &assets_id,
-          const interface::Pager &pager) {
-        auto query =
-            query_.mutable_payload()->mutable_get_account_asset_transactions();
-        query->set_account_id(account_id);
-        boost::for_each(assets_id, [&query](const auto &asset) {
-          query->add_assets_id(asset);
+          const interface::Transaction::HashType &pager_tx_hash =
+            interface::Transaction::HashType(""),
+          const interface::Pager::Limit &pager_limit =
+            interface::Pager::MaxLimit{}) {
+        return queryField([&](auto proto_query) {
+          auto query =
+              proto_query->mutable_get_account_asset_transactions();
+          query->set_account_id(account_id);
+          boost::for_each(assets_id, [&query](const auto &asset) {
+            query->add_assets_id(asset);
+          });
+          auto &mutable_pager = *query->mutable_pager();
+          mutable_pager.set_tx_hash(toBinaryString(pager_tx_hash));
+          mutable_pager.set_limit(pager_limit);
         });
-        auto &mutable_pager = *query->mutable_pager();
-        mutable_pager.set_tx_hash(
-          shared_model::crypto::toBinaryString(pager.transactionHash()));
-        mutable_pager.set_limit(pager.limit());
-        return *this;
       }
 
       auto getAccountAssets(

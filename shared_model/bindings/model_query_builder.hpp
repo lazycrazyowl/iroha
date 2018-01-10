@@ -79,22 +79,28 @@ namespace shared_model {
       /**
        * Queries account transaction collection
        * @param account_id - id of account to query
+       * @param pager_tx_hash - pager transaction hash for requested transactions
+       * @param pager_limit - pager limit for requested transactions
        * @return builder with getAccountTransactions query inside
        */
       ModelQueryBuilder getAccountTransactions(
-          const interface::types::AccountIdType &account_id);
+          const interface::types::AccountIdType &account_id,
+          const interface::Transaction::HashType &pager_tx_hash,
+          const interface::Pager::Limit &pager_limit);
 
       /**
        * Queries account transaction collection for a given asset
        * @param account_id - id of account to query
        * @param assets_id - asset id collection to query about
-       * @param pager - pager for requested transactions
+       * @param pager_tx_hash - pager transaction hash for requested transactions
+       * @param pager_limit - pager limit for requested transactions
        * @return builder with getAccountAssetTransactions query inside
        */
       ModelQueryBuilder getAccountAssetTransactions(
           const interface::types::AccountIdType &account_id,
           const interface::types::AssetIdCollectionType &assets_id,
-          const interface::Pager &pager);
+          const interface::Transaction::HashType &pager_tx_hash,
+          const interface::Pager::Limit &pager_limit);
 
       /**
        * Queries balance of specific asset for given account

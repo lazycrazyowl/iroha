@@ -3,6 +3,7 @@ target_link_libraries(tx_pipeline_integration_test
     application
     raw_block_insertion
     model_generators
+    cryptography
     shared_model_proto_backend
     shared_model_ed25519_sha3
     shared_model_stateless_validation

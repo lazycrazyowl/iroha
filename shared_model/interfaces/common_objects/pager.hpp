@@ -40,9 +40,14 @@ namespace shared_model {
       /**
        * Max limit
        */
-      static constexpr Limit MAX_PAGER_LIMIT = 100;
-      static_assert(MAX_PAGER_LIMIT == iroha::model::Pager::MAX_PAGER_LIMIT,
-                    "Should be equal to old fashioned model's");
+      struct MaxLimit {
+        constexpr operator Limit() const {
+          constexpr Limit limit = 100;
+          static_assert(limit == iroha::model::Pager::MAX_PAGER_LIMIT,
+                        "Should be equal to old fashioned model's");
+          return limit;
+        }
+      };
 
       /**
        * @return transaction hash of pager
